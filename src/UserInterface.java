@@ -15,6 +15,10 @@ import javax.swing.Box;
 import java.awt.Component;
 import javax.swing.JInternalFrame;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.concurrent.TimeUnit;
@@ -45,7 +49,11 @@ public class UserInterface {
 				try {
 					UserInterface window = new UserInterface();
 					window.frame.setVisible(true);
+					window.frame.setTitle("Lab 5 UI: Connecting");
 					shell = new CommandLineShell("Welcome to Lab 5 Command Line Tool");
+					shell.waitForConnection();
+					window.frame.setTitle("Lab 5 UI: Connected");
+					shell.setupStreams();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -79,7 +87,7 @@ public class UserInterface {
 		
 		JLabel lblNewLabel = new JLabel("Robot Functions");
 		lblNewLabel.setBounds(90, 0, 434, 22);
-		lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		lblNewLabel.setHorizontalAlignment(SwingConstants.LEFT);
 		lblNewLabel.setFont(new Font("Tahoma", Font.BOLD, 18));
 		frame.getContentPane().add(lblNewLabel);
 		
@@ -93,13 +101,12 @@ public class UserInterface {
 				String forwardCm = forwardCmValue.getText();
 				timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new java.util.Date());
 				textConsole.append(timestamp + ": " + "Moving Forward " + forwardCm + "cm.\n");
-//				try {
-//					shell.writeValue("foward "  + Integer.parseInt(forwardCm));
-//					textConsole.setText("Moving Forward " + forwardCm + "cm.");
-//				} catch (NumberFormatException | IOException e1) {
-//					// TODO Auto-generated catch block
-//					e1.printStackTrace();
-//				}
+				try {
+					shell.writeValue("forward "  + Integer.parseInt(forwardCm));
+					textConsole.setText("Moving Forward " + forwardCm + "cm.");
+				} catch (NumberFormatException | IOException e1) {
+					e1.printStackTrace();
+				}
 			}
 		});
 		
@@ -110,6 +117,19 @@ public class UserInterface {
 		forwardCmValue.setBounds(264, 43, 86, 20);
 		frame.getContentPane().add(forwardCmValue);
 		forwardCmValue.setColumns(10);
+		forwardCmValue.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e){
+				String value = forwardCmValue.getText();
+				try{
+					Integer intVal = Integer.parseInt(value);
+					forwardBtn.setEnabled(intVal <= 20 && intVal > 0);
+				}
+				catch(NumberFormatException e2){
+					forwardBtn.setEnabled(false);
+				}
+			}
+		});
 		
 		JLabel lblMoveBackwardscm = new JLabel("Move Backwards (cm)");
 		lblMoveBackwardscm.setBounds(20, 77, 127, 14);
@@ -136,6 +156,20 @@ public class UserInterface {
 		});
 		backwardBtn.setBounds(466, 73, 58, 23);
 		frame.getContentPane().add(backwardBtn);
+		
+		backwardCmValue.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e){
+				String value = backwardCmValue.getText();
+				try{
+					Integer intVal = Integer.parseInt(value);
+					backwardBtn.setEnabled(intVal <= 20 && intVal > 0);
+				}
+				catch(NumberFormatException e2){
+					backwardBtn.setEnabled(false);
+				}
+			}
+		});
 		
 		JLabel lblRotateClockwisecm = new JLabel("Rotate Clockwise (deg)");
 		lblRotateClockwisecm.setBounds(20, 107, 148, 14);
@@ -189,6 +223,34 @@ public class UserInterface {
 		cClockwiseBtn.setBounds(466, 136, 58, 23);
 		frame.getContentPane().add(cClockwiseBtn);
 		
+		clockwiseDegValue.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e){
+				try{
+					String value = clockwiseDegValue.getText();
+					
+					Integer intVal = Integer.parseInt(value);
+					clockwiseBtn.setEnabled(intVal <= 359 && intVal > 0);
+				}
+				catch(NumberFormatException e2){
+					clockwiseBtn.setEnabled(false);
+				}
+			}
+		});
+		cClockwiseDegValue.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e){
+				try{
+					String value = cClockwiseDegValue.getText();
+					Integer intVal = Integer.parseInt(value);
+					cClockwiseBtn.setEnabled(intVal > 0 && intVal <= 359);
+				}
+				catch(NumberFormatException e2){
+					cClockwiseBtn.setEnabled(false);
+				}
+			}
+		});
+		
 		JButton sonarBtn = new JButton("Display Sonar Distance");
 		sonarBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -237,6 +299,10 @@ public class UserInterface {
 		lblConsole.setBounds(74, 285, 58, 14);
 		frame.getContentPane().add(lblConsole);
 		
+		forwardBtn.setEnabled(false);
+		backwardBtn.setEnabled(false);
+		clockwiseBtn.setEnabled(false);
+		cClockwiseBtn.setEnabled(false);
 	}
 	
 	public void exitProgram(){
@@ -247,6 +313,7 @@ public class UserInterface {
 					frame.setVisible(false);
 					frame.dispose();
 					shell.quit();
+					System.exit(0);
 				} catch (Exception e2) {
 					// TODO Auto-generated catch block
 					e2.printStackTrace();
